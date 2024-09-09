@@ -1,7 +1,7 @@
 import express from "express";
 import { get, merge } from "lodash";
 
-import { getUserBySessiionToken } from "../db/users";
+import { getUserById, getUserBySessiionToken } from "../db/users";
 
 export const isOwner = async (
   req: express.Request,
@@ -11,8 +11,9 @@ export const isOwner = async (
   try {
     const { id } = req.params;
     const currentUserId = get(req, "identity._id") as string;
-
-    if (id !== currentUserId) {
+console.log("ASDS", id, currentUserId.toString());
+    if (id !== currentUserId.toString()) {
+      console.log("IS NOT OWNER");
       return res.sendStatus(403);
     }
     if (currentUserId.toString() !== id) {
@@ -32,16 +33,23 @@ export const isAuthenticated = async (
 ) => {
   try {
     const sessionToken = req.cookies["KWES-AUTH"];
-
+    console.log(sessionToken);
     if (!sessionToken) {
+      console.log("no session token");
       return res.sendStatus(403);
+
     }
 
-    const existingUser = await getUserBySessiionToken(sessionToken);
+    console.log(req.params["id"])
+
+    const existingUser = await getUserById(req.params["id"]);
 
     if (!existingUser) {
+      console.log("USER!");
       return res.sendStatus(403);
     }
+
+    console.log(existingUser);
     merge(req, { identity: existingUser });
 
     return next();
